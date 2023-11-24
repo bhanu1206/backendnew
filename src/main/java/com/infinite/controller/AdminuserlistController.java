@@ -23,7 +23,7 @@ public class AdminuserlistController {
 	@RequestMapping(value="/adminhome",method=RequestMethod.GET)
 	public List<User> getUsers() {
 		
-		return ulservice.getUsers();
+	return ulservice.getUsers();
 	}
 
 }
