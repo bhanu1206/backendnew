@@ -50,6 +50,7 @@ public class UserDaoImpl implements IUserDao {
 		query.setParameter("password", password);
 		User validateuser=(User) query.uniqueResult();
 		return validateuser;
+		
 		}
 
 
