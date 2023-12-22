@@ -15,6 +15,12 @@ public class Restaurant {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "restaurant_id")
     private int restaurantId;
+    
+    @Column(name="username")
+    private String username;
+    
+    @Column(name="password")
+    private String password;
  
     @Column(name = "restaurant_name", length = 100)
     private String restaurantName;
@@ -28,6 +34,22 @@ public class Restaurant {
 
 	public void setRestaurantId(int restaurantId) {
 		this.restaurantId = restaurantId;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 	public String getRestaurantName() {
@@ -45,6 +67,7 @@ public class Restaurant {
 	public void setAddress(String address) {
 		this.address = address;
 	}
- 
+
+	
     
 }

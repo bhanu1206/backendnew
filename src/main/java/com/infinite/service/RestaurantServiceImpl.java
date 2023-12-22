@@ -20,6 +20,18 @@ public class RestaurantServiceImpl implements IRestaurantService{
 		
 		return rdao.getRestaurant();
 	}
+
+	@Transactional
+	public Restaurant addrestaurant(Restaurant restaurant) {
+		// TODO Auto-generated method stub
+		return rdao.addrestaurant(restaurant);
+	}
+
+	@Override
+	public Restaurant validateRestaurant(String username, String password) {
+		// TODO Auto-generated method stub
+		return rdao.validateRestaurant(username, password);
+	}
 	
 	
 }

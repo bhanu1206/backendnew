@@ -33,4 +33,23 @@ public class RestaurantDaoImpl implements IRestaurantDao{
 		return ls;
 	}
 
+	@Transactional
+	public Restaurant addrestaurant(Restaurant restaurant) {
+		// TODO Auto-generated method stub
+		Session session = this.sesfactory.getCurrentSession();
+		session.save(restaurant);
+		return restaurant;
+	}
+
+	@Transactional
+	public Restaurant validateRestaurant(String username, String password) {
+		// TODO Auto-generated method stub
+		Session session = this.sesfactory.getCurrentSession();
+		Query query=session.createQuery("FROM Restaurant WHERE username= :username AND password= :password");
+		query.setParameter("username", username);
+		query.setParameter("password", password);
+		Restaurant validaterestaurant=(Restaurant) query.uniqueResult();
+		return validaterestaurant;
+	}
+
 }
