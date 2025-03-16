@@ -23,13 +23,13 @@ jobs:
         run: mvn clean package -DskipTests
 
       - name: Build Docker Image
-        run: docker build -t backendApp:v1 .
+        run: docker build -t backendapp:v1 .
 
       - name: Push Docker Image to Docker Hub
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker tag backendApp:v1 bhanu165/backendApp:v1
-          docker push bhanu165/backendApp:v1
+          docker tag backendapp:v1 bhanu165/backendapp:v1
+          docker push bhanu165/backendapp:v1
 
       - name: Deploy on Ubuntu1
         uses: appleboy/ssh-action@master
@@ -38,7 +38,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            docker pull bhanu165/backendApp:v1
+            docker pull bhanu165/backendapp:v1
             docker stop backend || true
             docker rm backend || true
-            docker run -d --name backend -p 8080:8080 bhanu165/backendApp:v1
+            docker run -d --name backend -p 8080:8080 bhanu165/backendapp:v1
