@@ -31,9 +31,6 @@ jobs:
           docker tag backendapp:v1 bhanu165/backendapp:v1
           docker push bhanu165/backendapp:v1
 
-      - name: Debug GitHub Secrets
-        run: echo "Server IP: ${{ secrets.SERVER_IP }}"
-
       - name: Deploy on Ubuntu1
         uses: appleboy/ssh-action@master
         with:
