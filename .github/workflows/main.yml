@@ -1,4 +1,4 @@
-name: Deploy Spring Boot Backend
+name: Deploy Spring Boot BackendApp
 
 on:
   push:
@@ -40,7 +40,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
-          username: ubuntu
+          username: bhanu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             docker pull bhanu165/backendapp:v1
