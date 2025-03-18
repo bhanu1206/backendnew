@@ -22,24 +22,6 @@ jobs:
       - name: Build and Package with Maven
         run: mvn clean package -DskipTests
 
-      - name: Start MySQL Container
-        run: |
-          docker run -d --name mysql-db \
-            -e MYSQL_ROOT_PASSWORD=Root@123 \
-            -e MYSQL_USER=root1 \
-            -e MYSQL_PASSWORD=Root@123 \
-            -e MYSQL_DATABASE=springboot \
-            -p 3306:3306 \
-            mysql:8
-
-      - name: Wait for MySQL to Start
-        run: sleep 20  # Wait for MySQL to be ready
-
-      - name: Create Tables in MySQL
-        run: |
-          docker cp src/main/resources/sqlcommands.sql mysql-db:/docker-entrypoint-initdb.d/sqlcommands.sql
-          docker exec -i mysql-db mysql -u root -pRoot@123 springboot < src/main/resources/sqlcommands.sql
-
       - name: Build Docker Image
         run: docker build -t backendapp:v1 .
 
@@ -61,10 +43,35 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # Pull MySQL Docker Image
+            docker pull mysql:8
+
+            # Stop and remove any existing MySQL container
+            docker stop mysql-db || true
+            docker rm mysql-db || true
+
+            # Run MySQL on EC2
+            docker run -d --name mysql-db --restart always \
+              -e MYSQL_ROOT_PASSWORD=Root@123 \
+              -e MYSQL_USER=root1 \
+              -e MYSQL_PASSWORD=Root@123 \
+              -e MYSQL_DATABASE=springboot \
+              -p 3306:3306 \
+              mysql:8
+
+            # Wait for MySQL to initialize
+            sleep 10
+
+            # Copy and execute the SQL script
+            docker cp src/main/resources/sqlcommands.sql mysql-db:/docker-entrypoint-initdb.d/sqlcommands.sql
+            docker exec -i mysql-db mysql -u root -pRoot@123 springboot < /docker-entrypoint-initdb.d/sqlcommands.sql
+
+            # Pull and deploy backend app
             docker pull bhanu165/backendapp:v1
             docker stop backend || true
             docker rm backend || true
-            docker run -d --name backend --restart always -p 8080:8080 \
+            docker run -d --name backend --restart always \
+              -p 8080:8080 \
               --env SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/springboot \
               --env SPRING_DATASOURCE_USERNAME=root1 \
               --env SPRING_DATASOURCE_PASSWORD=Root@123 \
