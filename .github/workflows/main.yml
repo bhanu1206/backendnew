@@ -22,6 +22,24 @@ jobs:
       - name: Build and Package with Maven
         run: mvn clean package -DskipTests
 
+      - name: Start MySQL Container
+        run: |
+          docker run -d --name mysql-db \
+            -e MYSQL_ROOT_PASSWORD=Root@123 \
+            -e MYSQL_USER=root1 \
+            -e MYSQL_PASSWORD=Root@123 \
+            -e MYSQL_DATABASE=springboot \
+            -p 3306:3306 \
+            mysql:8
+
+      - name: Wait for MySQL to Start
+        run: sleep 20  # Wait for MySQL to be ready
+
+      - name: Create Tables in MySQL
+        run: |
+          docker cp sqlcommands.sql mysql-db:/docker-entrypoint-initdb.d/sqlcommands.sql
+          docker exec -i mysql-db mysql -u root -pRoot@123 springboot < sqlcommands.sql
+
       - name: Build Docker Image
         run: docker build -t backendapp:v1 .
 
@@ -30,11 +48,11 @@ jobs:
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
           docker tag backendapp:v1 bhanu165/backendapp:v1
           docker push bhanu165/backendapp:v1
+
       - name: Debug SSH Connectivity
         run: |
           echo "Checking if port 22 is open on ${{ secrets.SERVER_IP }}"
           nc -zv ${{ secrets.SERVER_IP }} 22 || echo "Port 22 is not open!"
-
 
       - name: Deploy on Ubuntu
         uses: appleboy/ssh-action@master
@@ -46,4 +64,8 @@ jobs:
             docker pull bhanu165/backendapp:v1
             docker stop backend || true
             docker rm backend || true
-            docker run -d --name backend --restart always -p 8080:8080 bhanu165/backendapp:v1
+            docker run -d --name backend --restart always -p 8080:8080 \
+              --env SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/springboot \
+              --env SPRING_DATASOURCE_USERNAME=root1 \
+              --env SPRING_DATASOURCE_PASSWORD=Root@123 \
+              bhanu165/backendapp:v1
