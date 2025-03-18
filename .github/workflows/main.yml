@@ -35,6 +35,14 @@ jobs:
         run: |
           echo "Checking if port 22 is open on ${{ secrets.SERVER_IP }}"
           nc -zv ${{ secrets.SERVER_IP }} 22 || echo "Port 22 is not open!"
+      - name: Upload SQL file to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "src/main/resources/sqlcommands.sql"
+          target: "/home/ubuntu/"
 
       - name: Deploy on Ubuntu
         uses: appleboy/ssh-action@master
@@ -59,11 +67,14 @@ jobs:
               -p 3306:3306 \
               mysql:8
 
+            # Wait for MySQL to initialize
             sleep 10
 
-            # Copy and execute the SQL script
-            docker cp src/main/resources/sqlcommands.sql mysql-db:/docker-entrypoint-initdb.d/sqlcommands.sql
-            docker exec -i mysql-db mysql -u root -pRoot@123 springboot < /docker-entrypoint-initdb.d/sqlcommands.sql
+            # Copy the uploaded SQL file into the MySQL container
+            docker cp /home/ubuntu/sqlcommands.sql mysql-db:/docker-entrypoint-initdb.d/sqlcommands.sql
+
+            # Execute SQL script inside MySQL container
+            docker exec -i mysql-db mysql -u root -pRoot@123 springboot < /home/ubuntu/sqlcommands.sql
 
             # Pull and deploy backend app
             docker pull bhanu165/backendapp:v1
@@ -75,3 +86,6 @@ jobs:
               --env SPRING_DATASOURCE_USERNAME=root1 \
               --env SPRING_DATASOURCE_PASSWORD=Root@123 \
               bhanu165/backendapp:v1
+
+
+
